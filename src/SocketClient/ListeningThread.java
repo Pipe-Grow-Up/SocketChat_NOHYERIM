@@ -30,7 +30,7 @@ public class ListeningThread extends Thread { // 서버에서 보낸 메세지 �
             while(input != null) { // 무한반복
                 try{
                     String serverMessage = reader.readLine();
-                    System.out.println("server: "+serverMessage);
+                    System.out.println(serverMessage);
                 }catch (Exception e){
                     e.printStackTrace();
                     break;

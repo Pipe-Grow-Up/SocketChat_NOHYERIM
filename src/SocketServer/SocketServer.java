@@ -63,9 +63,8 @@ public class SocketServer extends Thread {
             PrintWriter writer = new PrintWriter(out, true);
 
             // 쓰레드별로 유저생성
-            User thisUser = new User(socket,"(me)");
+            User thisUser = new User(socket,"(me)"); // 초기 이름을 ME로 지정
             userList.add(thisUser);
-            //thisUser.setMyChatThread(this);
 
             // 클라이언트에게 연결되었다는 메세지 보내기
             writer.println("안녕하세요, 여기는 로비입니다. 원하시는 기능을 숫자로 입력해주세요.\n" +
@@ -224,7 +223,9 @@ public class SocketServer extends Thread {
                 Socket socketUser = serverSocket.accept(); // 서버에 클라이언트 접속 시
                 // Thread 안에 클라이언트 정보를 담아줌
                 Thread thd = new SocketServer(socketUser,chatRoomService);
+                WritingThread writingThread = new WritingThread(userList); // 공지용 thread
                 thd.start(); // Thread 시작
+                writingThread.start(); // thread 시작
             }
 
         } catch (IOException e) {
