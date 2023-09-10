@@ -8,7 +8,7 @@ import java.util.List;
 public class ChatRoom {
     private int id;
     private String title;
-    private List<SocketServer> chatThreadList;
+    private List<SocketServer> chatThreadList; // 1:1 이므로 최대 2명까지 입장 가능.
 
     public ChatRoom(int id, String title){
         this.id = id;
@@ -28,12 +28,13 @@ public class ChatRoom {
 
     // 방에 입장했을때,
     public void addChatThread(SocketServer chatThread){
-        chatThreadList.add(chatThread);
-        chatThread.setChatRoom(this); //
+        if(chatThreadList.size()<2){ // 1:1 이므로 최대 2명까지 입장 가능.
+            chatThreadList.add(chatThread);
+            chatThread.setChatRoom(this);
+        }
     }
 
     public void removeChatThread(SocketServer chatThread){
-        //chatThreadList.remove(chatThread);
         // 모든 채팅 참여자 나가도록 하기
         for(SocketServer ct : chatThreadList){
             ct.setChatRoom(null);
@@ -43,6 +44,11 @@ public class ChatRoom {
         broadcast(chatThread.getName() + "님이 퇴장하셨습니다.");
         broadcast(chatThread.getName() + "채팅방을 종료합니다.");
         chatThreadList.clear();
+    }
+
+    public int getChatThreadListSize(){
+        // 채팅 참여자 몇명인지 확인
+        return chatThreadList.size();
     }
 
 

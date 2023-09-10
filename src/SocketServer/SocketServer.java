@@ -133,7 +133,7 @@ public class SocketServer extends Thread {
                     }
                 }
 
-                if(thisUser.getUserName().length()==0){ // 이름 지정 안했으면
+                if(thisUser.getUserName().equals("(me)")){ // 이름 지정 안했으면
                     thisUser.setUserName(guestNickName+GUEST_ID);
                     GUEST_ID++;
                 }
@@ -159,13 +159,21 @@ public class SocketServer extends Thread {
                     Iterator<ChatRoom> chatRoomIterator= chatRoomService.getChatRoomIterator();
                     while(chatRoomIterator.hasNext()){
                         ChatRoom cr = chatRoomIterator.next();
-                        pw.println(cr.getId() + " - " + cr.getTitle());
+                        String status = chatRoomService.isFullRoom(cr.getId()) ? "입장불가" : "입장가능" ;
+                        pw.println(cr.getId() + " - " + cr.getTitle()+" || "+status);
                         pw.flush();
                     }
                 }
                 else if(readValue.contains("/join")){ // 방 입장
                     try {
-                        chatRoomService.join(Integer.parseInt(readValue.substring(6)), this);
+                        int roomId = Integer.parseInt(readValue.substring(6));
+                        if(chatRoomService.isFullRoom(roomId)){ // 방이 다 찼으면 안내메시지 출력
+                            pw.println("정원이 찬 방입니다.");
+                        }else{
+                            pw.println("채팅방에 입장합니다.");
+                            chatRoomService.join(roomId, this);
+                        }
+
                     } catch(Exception ex){
                         pw.println("방 번호가 잘못 되었습니다.");
                         pw.flush();
