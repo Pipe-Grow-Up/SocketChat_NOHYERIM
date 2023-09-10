@@ -7,10 +7,16 @@ import java.util.ArrayList;
 public class User {
 
     private Socket client_sokeet; // 유저 소켓
-    private String userName; // 닉네임
+    private String userName ; // 닉네임
 
-    private SocketServer myChatThread; // 내가 속한 채팅 쓰레드
-    private ArrayList<SocketServer> chatThreadList; // 내가 속한 채팅 쓰레드 리스트
+//    private SocketServer myChatThread; // 내가 속한 채팅 쓰레드
+//    private ArrayList<SocketServer> chatThreadList; // 내가 속한 채팅 쓰레드 리스트
+
+    public User(Socket client_socket, String userName){
+        this.client_sokeet = client_socket;
+        this.userName = userName;
+    }
+
     public Socket getClient_sokeet() {
         return client_sokeet;
     }
@@ -27,18 +33,13 @@ public class User {
         this.userName = userName;
     }
 
-    public User(Socket client_socket, String userName){
-        this.client_sokeet = client_socket;
-        this.userName = userName;
-    }
-
-    public SocketServer getMyChatThread() {
-        return myChatThread;
-    }
-
-    public void setMyChatThread(SocketServer myChatThread) {
-        this.myChatThread = myChatThread;
-    }
+//    public SocketServer getMyChatThread() {
+//        return myChatThread;
+//    }
+//
+//    public void setMyChatThread(SocketServer myChatThread) {
+//        this.myChatThread = myChatThread;
+//    }
 
 
 }

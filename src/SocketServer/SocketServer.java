@@ -7,8 +7,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class SocketServer extends Thread {
-    //String name = "unknown"; // 클라이언트 이름 설정용
-    static ArrayList<User> list = new ArrayList<User>(); // 유저 확인용
+
+    /* 닉네임 지정하지 않을 시엔 : guest+id (id: auto increment)*/
+    private static int GUEST_ID = 1; // 닉네임 지정 하지 않은 guest들을 위한 id
+    private String guestNickName = "guest"; // 직네임 지정 하지 않은 사람들을 위한 이름
+
+    static ArrayList<User> userList = new ArrayList<User>(); // 유저 확인용 리스트
     static Socket socket = null;
     private BufferedReader br;
     private PrintWriter pw;
@@ -20,13 +24,24 @@ public class SocketServer extends Thread {
         PrintWriter pw =  new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
         this.br = br;
         this.pw = pw;
-        //this.name = br.readLine();
         this.chatRoomService = chatRoomService;
+
     }
     public void sendMessage(String msg){
         System.out.println("sendMessage : " + msg);
         pw.println(msg);
         pw.flush();
+    }
+
+    public boolean isOnlyOneName(String userInputName){
+        /// 유일한 닉네임 인지 확인 -> 있으면 false return
+
+        for(User user : userList){
+            if(userInputName.equals(user.getUserName())){
+                return false;
+            }
+        }
+        return true;
     }
 
     public void run() {
@@ -48,9 +63,9 @@ public class SocketServer extends Thread {
             PrintWriter writer = new PrintWriter(out, true);
 
             // 쓰레드별로 유저생성
-            User thisUser = new User(socket,"");
-            list.add(thisUser);
-            thisUser.setMyChatThread(this);
+            User thisUser = new User(socket,"(me)");
+            userList.add(thisUser);
+            //thisUser.setMyChatThread(this);
 
             // 클라이언트에게 연결되었다는 메세지 보내기
             writer.println("안녕하세요, 여기는 로비입니다. 원하시는 기능을 숫자로 입력해주세요.\n" +
@@ -68,9 +83,9 @@ public class SocketServer extends Thread {
 
                 if(!identify && !readValue.isBlank()){ // 연결 후 한번만 노출
                     identify = true;
-                    //if(readValue.is) is number-
-                    //else string (/exit)//TODO 분리해서 하기
+                    //if(readValue.is) is number- // TODO 숫자가 아닌경우 대응
                     if(Integer.parseInt(readValue) == 1){ // 1번 : 닉네임 입력
+
 
                         out = socket.getOutputStream();
                         writer = new PrintWriter(out,true);
@@ -81,34 +96,53 @@ public class SocketServer extends Thread {
                         InputStream nameInput = socket.getInputStream();
 
                         BufferedReader nameReader = new BufferedReader(new InputStreamReader(nameInput));
-                        thisUser.setUserName(nameReader.readLine());
+                        String userInputName = nameReader.readLine();
+                        System.out.println("log : "+userInputName);
+
+
+                        while (!isOnlyOneName(userInputName)) {
+                            // 이름을 입력받은 후 while문에서 유일한 이름인지 검사한다.
+                            // 이름이 중복되지 않으면 while문을 종료하고 이름을 지정한다.
+
+                            writer.println("닉네임이 중복되었습니다. 다시입력하세요");
+                            userInputName = nameReader.readLine();
+                        }
+
+                        thisUser.setUserName(userInputName);
                         writer.println("닉네임이 " + thisUser.getUserName() + "으로 설정되었습니다.");
+
+
+
                         continue;
+
                     }else if(Integer.parseInt(readValue) == 2){ // 2번 : 접속자 리스트 출력
                         writer.println("----------------------");
-                        for(int i=0;i<list.size();i++){
-                            writer.println("* "+list.get(i).getUserName());
+                        for(int i=0;i<userList.size();i++){
+                            writer.println("* "+userList.get(i).getUserName());
                         }
                         writer.println("----------------------");
                     }else if(Integer.parseInt(readValue) == 3 || readValue.contains("/exit") ){ // 채팅 프로그램 종료
                         System.out.println("채팅 프로그램을 종료합니다.");
                         System.out.println("remove : "+socket.toString());
-                        for(User user : list){
+                        for(User user : userList){
                             if(user.getClient_sokeet().equals(socket)){
-                                System.out.println("sdfsdf????????");
-                                list.remove(user);
+                                userList.remove(user);
                             }
                         }
                         continue;
                     }
                 }
+
+                if(thisUser.getUserName().length()==0){ // 이름 지정 안했으면
+                    thisUser.setUserName(guestNickName+GUEST_ID);
+                    GUEST_ID++;
+                }
                 if(readValue.contains("/exit")){ // 채팅 프로그램 종료
                     System.out.println("채팅 프로그램을 종료합니다.");
                     System.out.println("remove : "+socket.toString());
-                    for(User user : list){
+                    for(User user : userList){
                         if(user.getClient_sokeet().equals(socket)){
-                            System.out.println("sdfsdf????????");
-                            list.remove(user);
+                            userList.remove(user);
                         }
                     }
                     continue;
@@ -142,8 +176,8 @@ public class SocketServer extends Thread {
 
                 }
                 else{
-                    for (int i = 0; i < list.size(); i++) {
-                    out = list.get(i).getClient_sokeet().getOutputStream();
+                    for (int i = 0; i < userList.size(); i++) {
+                    out = userList.get(i).getClient_sokeet().getOutputStream();
                     writer = new PrintWriter(out, true);
                     // 클라이언트에게 메세지 발송
                     writer.println(thisUser.getUserName() + " : " + readValue);
@@ -163,22 +197,6 @@ public class SocketServer extends Thread {
             e.printStackTrace(); // 예외처리
         }
     }
-/*
-    public  void writeAll(String msg) throws IOException {
-        // 모두에게 채팅메시지를 보냄
-
-        try{    // list 안에 클라이언트 정보가 담겨있음
-            for (int i = 0; i < list.size(); i++) {
-                out = list.get(i).getClient_sokeet().getOutputStream();
-                writer = new PrintWriter(out, true);
-                // 클라이언트에게 메세지 발송
-                writer.println(thisUser.getUserName() + " : " + msg);
-            }
-       }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-*/
 
     public void setChatRoom(ChatRoom chatRoom) {
         this.chatRoom = chatRoom;
