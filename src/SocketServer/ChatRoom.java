@@ -1,7 +1,5 @@
 package SocketServer;
 
-import jdk.net.Sockets;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +16,7 @@ public class ChatRoom {
 
     }
 
-    public void broadcast(String msg){
+    public void chatRoomBroadcastMsg(String msg){
         System.out.println("ChatRoom에서 메세지 브로드캐스트" + msg);
         for(int i=0;i<chatThreadList.size();i++){
             SocketServer chatThread = chatThreadList.get(i);
@@ -41,8 +39,8 @@ public class ChatRoom {
         }
         chatThread.setChatRoom(null);
         chatThreadList.clear();
-        broadcast(chatThread.getName() + "님이 퇴장하셨습니다.");
-        broadcast(chatThread.getName() + "채팅방을 종료합니다.");
+        chatRoomBroadcastMsg(chatThread.getName() + "님이 퇴장하셨습니다.");
+        chatRoomBroadcastMsg(chatThread.getName() + "채팅방을 종료합니다.");
         chatThreadList.clear();
     }
 

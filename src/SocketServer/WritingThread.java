@@ -1,10 +1,7 @@
 package SocketServer;
 
-import java.io.BufferedReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -35,7 +32,7 @@ public class WritingThread extends Thread { // client로 메세지 보내는 Thr
                         // OutputStream - Server에서 Client로 메세지 발송
                         // socket의 OutputStream 정보를 OutputStream out에 넣은 뒤
                         // PrintWriter에 위 OutputStream을 담아 사용
-                        PrintWriter pw =  new PrintWriter(new OutputStreamWriter(user.getClient_sokeet().getOutputStream()));
+                        PrintWriter pw =  new PrintWriter(new OutputStreamWriter(user.getClient_socket().getOutputStream()));
                         pw.println("서버 공지: "+message); // 입력한 메세지 발송
                         pw.flush();
                         System.out.println(message);

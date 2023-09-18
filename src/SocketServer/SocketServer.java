@@ -14,6 +14,8 @@ public class SocketServer extends Thread {
 
     static ArrayList<User> userList = new ArrayList<User>(); // 유저 확인용 리스트
     static Socket socket = null;
+
+    private boolean isJoinChatRoom;
     private BufferedReader br;
     private PrintWriter pw;
     ChatRoomService chatRoomService;
@@ -24,6 +26,7 @@ public class SocketServer extends Thread {
         PrintWriter pw =  new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
         this.br = br;
         this.pw = pw;
+        isJoinChatRoom = false;
         this.chatRoomService = chatRoomService;
 
     }
@@ -74,18 +77,14 @@ public class SocketServer extends Thread {
 
             String readValue; // Client에서 보낸 값 저장
 
-            boolean identify = false;
 
             // 클라이언트가 메세지 입력시마다 수행
             while((readValue = reader.readLine()) != null ) {
                 System.out.println(readValue);
 
-                if(!identify && !readValue.isBlank()){ // 연결 후 한번만 노출
-                    identify = true;
+                if(!readValue.isBlank()){ // 연결 후 한번만 노출
                     //if(readValue.is) is number- // TODO 숫자가 아닌경우 대응
                     if(Integer.parseInt(readValue) == 1){ // 1번 : 닉네임 입력
-
-
                         out = socket.getOutputStream();
                         writer = new PrintWriter(out,true);
 
@@ -99,10 +98,10 @@ public class SocketServer extends Thread {
                         System.out.println("log : "+userInputName);
 
 
-                        while (!isOnlyOneName(userInputName)) {
+                        while (!isOnlyOneName(userInputName) || userInputName.contains("_")) {
                             // 이름을 입력받은 후 while문에서 유일한 이름인지 검사한다.
                             // 이름이 중복되지 않으면 while문을 종료하고 이름을 지정한다.
-
+                            // "_" 가 들어가 있는 닉네임은 만들 수 없음. 이름 지정 안했을 때의 구분 규칙.
                             writer.println("닉네임이 중복되었습니다. 다시입력하세요");
                             userInputName = nameReader.readLine();
                         }
@@ -124,7 +123,7 @@ public class SocketServer extends Thread {
                         System.out.println("채팅 프로그램을 종료합니다.");
                         System.out.println("remove : "+socket.toString());
                         for(User user : userList){
-                            if(user.getClient_sokeet().equals(socket)){
+                            if(user.getClient_socket().equals(socket)){
                                 userList.remove(user);
                             }
                         }
@@ -133,14 +132,14 @@ public class SocketServer extends Thread {
                 }
 
                 if(thisUser.getUserName().equals("(me)")){ // 이름 지정 안했으면
-                    thisUser.setUserName(guestNickName+GUEST_ID);
+                    thisUser.setUserName(guestNickName+"_"+GUEST_ID);
                     GUEST_ID++;
                 }
                 if(readValue.contains("/exit")){ // 채팅 프로그램 종료
                     System.out.println("채팅 프로그램을 종료합니다.");
                     System.out.println("remove : "+socket.toString());
                     for(User user : userList){
-                        if(user.getClient_sokeet().equals(socket)){
+                        if(user.getClient_socket().equals(socket)){
                             userList.remove(user);
                         }
                     }
@@ -179,12 +178,12 @@ public class SocketServer extends Thread {
                     }
                 } else if(this.chatRoom != null){
                     System.out.println("속한 방에 브로드캐스트 합니다."+ readValue);
-                    chatRoom.broadcast(thisUser.getUserName()+" : "+readValue);
+                    chatRoom.chatRoomBroadcastMsg(thisUser.getUserName()+" : "+readValue);
 
                 }
                 else{
                     for (int i = 0; i < userList.size(); i++) {
-                    out = userList.get(i).getClient_sokeet().getOutputStream();
+                    out = userList.get(i).getClient_socket().getOutputStream();
                     writer = new PrintWriter(out, true);
                     // 클라이언트에게 메세지 발송
                     writer.println(thisUser.getUserName() + " : " + readValue);
