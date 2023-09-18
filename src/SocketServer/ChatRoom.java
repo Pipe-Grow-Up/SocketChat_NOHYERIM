@@ -41,7 +41,6 @@ public class ChatRoom {
         chatThreadList.clear();
         chatRoomBroadcastMsg(chatThread.getName() + "님이 퇴장하셨습니다.");
         chatRoomBroadcastMsg(chatThread.getName() + "채팅방을 종료합니다.");
-        chatThreadList.clear();
     }
 
     public int getChatThreadListSize(){
